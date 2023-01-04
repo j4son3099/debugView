@@ -19,7 +19,7 @@ function setup() {
   let sFrequency = random(5,20)
   let sRayLength = random(WIDTH/5, WIDTH/2)>>0
   let sRayStrokeWeight = random(5,15)>>0
-  let sFillColor = color(200, random(30)>>0, random(60)>>0)
+  let sFillColor = color(200, random(30)>>0, random(170)>>0)
   let sStrokeColor = color(255, random(60)>>0, random(100)>>0)
   
   
@@ -45,7 +45,14 @@ class Sun{
     this.rayLength = rayLength
     this.rayStrokeWeight = rayStrokeWeight
     this.fillColor = fillColor
+    this.endColor = color("#FFBF00")
     this.strokeColor =strokeColor
+    this.intermediateColors = []
+    this.currentWave = []
+
+    for(let x =0; x<this.rayLength;x++){
+      this.intermediateColors[x] = lerpColor(this.strokeColor,this.endColor,x/this.rayLength)
+    }
   }
   
   draw(){
@@ -69,14 +76,17 @@ class Sun{
       push()
       rotate(theta*i)
         for(let x =0; x<this.rayLength;x++){
-          currentColor = lerpColor(this.strokeColor, color("#FFBF00"),x/this.rayLength)
-          y = this.amplitude*sin(this.frequency * x + this.phase+loopCount/5)>>0
-          stroke(currentColor)
+          stroke(this.intermediateColors[x])
+          if (this.currentWave.length<=x) this.currentWave[x] = this.amplitude*sin(this.frequency * x + this.phase+loopCount/5)>>0
+          y = this.currentWave[x]
+          
           point(x,y)   
         } 
+      
       pop()
       
     }
+    this.currentWave = []
     
     DEBUG&&fill(0)
     DEBUG&&text("Position: " + this.position.x + " " + this.position.y, 20, 0)
