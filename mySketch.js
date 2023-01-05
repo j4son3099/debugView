@@ -7,7 +7,7 @@ let HEIGHT
 let backGroundColor
 let loopCount = 0
 let DEBUG = true
-let maxLoop = 100
+let maxLoop = 40
 
 
 function setup() {
@@ -47,8 +47,17 @@ function setup() {
   
   backGroundColor = color(random(100),random(50), 210)
   background(backGroundColor)
-  fill("darkgreen")
-  rect(0,rBase,WIDTH,HEIGHT)
+  if (DEBUG){
+    push();
+    stroke(255)
+    strokeWeight(1)
+    noFill()
+    rect(0,rBase,WIDTH,HEIGHT)
+    pop();
+  }else{
+    fill("darkgreen")
+    rect(0,rBase,WIDTH,HEIGHT)
+  }
 }
 
 function draw() {
@@ -57,13 +66,12 @@ function draw() {
   rect(0,0, WIDTH, HEIGHT/2>>0)
   sun.draw()
   buildings.draw(10)
-  road.draw()
+  //road.draw()
 
   loopCount++
   if (loopCount>=maxLoop) {
     noLoop()
-    DEBUG&&fill(0)
-    DEBUG&&text("Buildings (maxHeight/maxWidth/Base):" + buildings.maxHeight + "/" + buildings.maxWidth + "/" + buildings.base,WIDTH/4>>0,buildings.base+12)
+   debugText("Buildings (maxHeight/maxWidth/Base):" + buildings.maxHeight + "/" + buildings.maxWidth + "/" + buildings.base,WIDTH/4>>0,buildings.base+12)
   }
 
 
@@ -85,11 +93,30 @@ class Buildings{
         let currentX
         for(let i = 0 ; i<this.numBuildings;i++){
           currentColor = random(this.buildingPalette)
-          fill(currentColor)
-          currentX= random(WIDTH)>>0
-          rect(currentX, this.base>>0, random(this.maxWidth/4, this.maxWidth)>>0, -1*random(this.maxHeight/4, this.maxHeight)>>0, this.maxWidth/20>>0)
-          fill("cyan")
-          DEBUG&&circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10)
+          if (DEBUG){
+            push();
+            stroke("#ffffff90")
+            strokeWeight(1)
+            noFill()
+            // draw shape
+            currentX= random(WIDTH)>>0
+            let posY = this.base>>0;
+            let wid = random(this.maxWidth/4, this.maxWidth)>>0;
+            let height = -1*random(this.maxHeight/4, this.maxHeight)>>0;
+            let detailX = this.maxWidth/20>>0;
+            rect(currentX, this.base>>0, wid, height, detailX)
+            debugText(i + ": " + currentX + "," + posY, currentX, posY+height)
+            /* DEBUG&&circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10) */
+            pop();
+          }else{
+            // draw shape
+            fill(currentColor)
+            currentX= random(WIDTH)>>0
+            rect(currentX, this.base>>0, random(this.maxWidth/4, this.maxWidth)>>0, -1*random(this.maxHeight/4, this.maxHeight)>>0, this.maxWidth/20>>0)
+            fill("white")
+            DEBUG&&circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10)
+          }
+          
         }
       }
      
@@ -104,11 +131,25 @@ class Road{
        this.color2 = color2 
     }
     draw(){
-      fill(this.color1)
-      rect(0, this.base>>0, WIDTH, this.height)
-      fill(this.color2)
-      rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
-      rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
+
+      if (DEBUG){
+        push();
+        stroke(255)
+        strokeWeight(1)
+        noFill()
+        // draw shape
+        rect(0, this.base>>0, WIDTH, this.height)
+        rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
+        rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
+        pop();
+      }else{
+        // draw shape
+        fill(this.color1)
+        rect(0, this.base>>0, WIDTH, this.height)
+        fill(this.color2)
+        rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
+        rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
+      }
       
     }
 
@@ -141,15 +182,23 @@ class Sun{
     push()
     translate(this.position.x, this.position.y)
     
-    noStroke()
-    fill(this.fillColor)
-    circle(0,0, this.diameter)
+    if( DEBUG ){
+      push();
+      stroke(255)
+      noFill()
+      circle(0,0, this.diameter)
+      pop();
+    }else{
+      noStroke()
+      fill(this.fillColor)
+      circle(0,0, this.diameter)
+    }
     
     let theta = 2*PI/this.numRays
     let y
     
     tint(255,80)
-    strokeWeight(this.rayStrokeWeight)
+    DEBUG ? strokeWeight(1) : strokeWeight(this.rayStrokeWeight)
     for(let i = 0; i<this.numRays;i++){
       
       push()
@@ -167,12 +216,36 @@ class Sun{
     }
     this.currentWave = []
     
-    DEBUG&&fill(0)
-    DEBUG&&text("Position: " + this.position.x + " " + this.position.y, 20, 0)
-    DEBUG&&text("Sun Rays/Amp/Freq/RayLength: " + this.numRays + "/" + Math.round(this.amplitude).toString() + "/" + Math.round(this.frequency).toString() +"/" + Math.round(this.rayLength).toString(), 20, 17)
-    DEBUG&&text("Sun Colors: " + red(this.fillColor) + "/" +  green(this.fillColor) + "/" +  blue(this.fillColor), 20, 34)
+    
+    debugText("Position: " + this.position.x + " " + this.position.y, 20, 0)
+    debugText("Sun Rays/Amp/Freq/RayLength: " + this.numRays + "/" + Math.round(this.amplitude).toString() + "/" + Math.round(this.frequency).toString() +"/" + Math.round(this.rayLength).toString(), 20, 17)
+    debugText("Sun Colors: " + red(this.fillColor) + "/" +  green(this.fillColor) + "/" +  blue(this.fillColor), 20, 34)
     pop()
     
 
   }
 }
+
+function debugText( text, x, y ){
+  if( !DEBUG ) return
+  push();
+  stroke("#00000050")
+  strokeWeight(4)
+  fill(255)
+  window.text(text, x, y)
+  pop();
+}
+
+
+/*
+  if (DEBUG){
+    push();
+    stroke(255)
+    strokeWeight(1)
+    noFill()
+    // draw shape
+    pop();
+  }else{
+    // draw shape
+  }
+*/
