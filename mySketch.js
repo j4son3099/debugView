@@ -8,6 +8,7 @@ let backGroundColor
 let loopCount = 0
 let DEBUG = true
 let maxLoop = 40
+let foreground
 
 
 function setup() {
@@ -15,14 +16,15 @@ function setup() {
   WIDTH = windowWidth
   HEIGHT = windowHeight
   createCanvas(WIDTH, HEIGHT);
-  
+  foreground = createGraphics(WIDTH,HEIGHT)
+
   let sPosition = createVector(random(0.2,0.8)*WIDTH>>0,random(0,0.25)*HEIGHT>>0)
   let sDiameter = WIDTH/8*random(0.8,3)
   let sNumRays = random(15,30)>>0
   let sAmplitude = random(3,9)
   let sPhase = random(5,20)
   let sFrequency = random(5,20)
-  let sRayLength = random(WIDTH/5, WIDTH/4)>>0
+  let sRayLength = random(WIDTH, WIDTH*2)>>0
   let sRayStrokeWeight = random(5,15)>>0
   let sFillColor = color(200, random(30)>>0, random(170)>>0)
   let sStrokeColor = color(255, random(60)>>0, random(100)>>0)
@@ -42,36 +44,37 @@ function setup() {
   let rColor1 = "darkgray"
   let rColor2 = "yellow"
   let rBase = bBase
+  let rCars = 5
 
-  road = new Road(rHeight, rColor1, rColor2, rBase)
+  road = new Road(rHeight, rColor1, rColor2, rBase, rCars)
   
   backGroundColor = color(random(100),random(50), 210)
   background(backGroundColor)
   if (DEBUG){
-    push();
-    stroke(255)
-    strokeWeight(1)
-    noFill()
-    rect(0,rBase,WIDTH,HEIGHT)
-    pop();
+    foreground.push();
+    foreground.stroke(255)
+    foreground.strokeWeight(1)
+    foreground.noFill()
+    foreground.rect(0,rBase,WIDTH,HEIGHT)
+    foreground.pop();
   }else{
-    fill("darkgreen")
-    rect(0,rBase,WIDTH,HEIGHT)
+    foreground.fill("darkgreen")
+    foreground.rect(0,rBase,WIDTH,HEIGHT)
   }
 }
 
 function draw() {
   fill(backGroundColor)
   noStroke()
-  rect(0,0, WIDTH, HEIGHT/2>>0)
+  background(backGroundColor)
   sun.draw()
-  buildings.draw(10)
-  //road.draw()
-
+  buildings.draw(10,foreground)
+  road.draw(4, foreground)
+  image(foreground,0,0)
   loopCount++
   if (loopCount>=maxLoop) {
     noLoop()
-   debugText("Buildings (maxHeight/maxWidth/Base):" + buildings.maxHeight + "/" + buildings.maxWidth + "/" + buildings.base,WIDTH/4>>0,buildings.base+12)
+   debugText("Buildings (maxHeight/maxWidth/Base):" + buildings.maxHeight + "/" + buildings.maxWidth + "/" + buildings.base,WIDTH/4>>0,buildings.base+12, foreground)
   }
 
 
@@ -87,34 +90,34 @@ class Buildings{
 
     }
 
-    draw(mySkip){
+    draw(mySkip, targetGraphic){
       if (loopCount%mySkip==0){
         let currentColor
         let currentX
         for(let i = 0 ; i<this.numBuildings;i++){
           currentColor = random(this.buildingPalette)
           if (DEBUG){
-            push();
-            stroke("#ffffff90")
-            strokeWeight(1)
-            noFill()
+            targetGraphic.push();
+            targetGraphic.stroke("#ffffff90")
+            targetGraphic.strokeWeight(1)
+            targetGraphic.noFill()
             // draw shape
             currentX= random(WIDTH)>>0
             let posY = this.base>>0;
             let wid = random(this.maxWidth/4, this.maxWidth)>>0;
             let height = -1*random(this.maxHeight/4, this.maxHeight)>>0;
             let detailX = this.maxWidth/20>>0;
-            rect(currentX, this.base>>0, wid, height, detailX)
-            debugText(i + ": " + currentX + "," + posY, currentX, posY+height)
+            targetGraphic.rect(currentX, this.base>>0, wid, height, detailX)
+            debugText(i + ": " + currentX + "," + posY, currentX, posY+height, foreground)
             /* DEBUG&&circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10) */
-            pop();
+            targetGraphic.pop();
           }else{
             // draw shape
-            fill(currentColor)
+            targetGraphic.fill(currentColor)
             currentX= random(WIDTH)>>0
-            rect(currentX, this.base>>0, random(this.maxWidth/4, this.maxWidth)>>0, -1*random(this.maxHeight/4, this.maxHeight)>>0, this.maxWidth/20>>0)
-            fill("white")
-            DEBUG&&circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10)
+            targetGraphic.rect(currentX, this.base>>0, random(this.maxWidth/4, this.maxWidth)>>0, -1*random(this.maxHeight/4, this.maxHeight)>>0, this.maxWidth/20>>0)
+            targetGraphic.fill("white")
+            targetGraphic.circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10)
           }
           
         }
@@ -124,33 +127,62 @@ class Buildings{
 }
 
 class Road{
-    constructor(height, color1, color2, base){
+    constructor(height, color1, color2, base, cars){
        this.height = height
        this.base = base 
        this.color1 = color1 
        this.color2 = color2 
+       this.cars= cars
     }
-    draw(){
-
+    draw(mySkip, targetGraphic){
+      if (loopCount%mySkip==0) {
       if (DEBUG){
-        push();
-        stroke(255)
-        strokeWeight(1)
-        noFill()
+       
+        targetGraphic.stroke(255)
+        targetGraphic.strokeWeight(1)
+        targetGraphic.noFill()
         // draw shape
-        rect(0, this.base>>0, WIDTH, this.height)
-        rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
-        rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
-        pop();
+        targetGraphic.rect(0, this.base>>0, WIDTH, this.height)
+        targetGraphic.rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
+        targetGraphic.rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
+        
+        if (loopCount>maxLoop/5) {
+          let car1X
+          let car2X
+          // one car on each side of the road. 
+          for(let i=0; i<this.cars/2;i++){
+            car1X = random(WIDTH)>>0
+            targetGraphic.rect(car1X, this.base+this.height/8,this.height/4,this.height/6)
+            debugText(car1X, car1X, this.base+this.height*2/8, foreground)
+
+            car2X = random(WIDTH)>>0
+            targetGraphic.rect(car2X, this.base+this.height*5.5/8,this.height/4,this.height/6)
+            debugText(car2X, car2X, this.base+this.height*6.25/8, foreground)
+          }
+        }
+
       }else{
         // draw shape
-        fill(this.color1)
-        rect(0, this.base>>0, WIDTH, this.height)
-        fill(this.color2)
-        rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
-        rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
+        targetGraphic.fill(this.color1)
+        targetGraphic.rect(0, this.base>>0, WIDTH, this.height)
+        targetGraphic.fill(this.color2)
+        targetGraphic.rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
+        targetGraphic.rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
+
+        if (loopCount>maxLoop/5) {
+          let car1X
+          let car2X
+          for(let i=0; i<this.cars/2;i++){
+            car1X = random(WIDTH)>>0
+            targetGraphic.rect(car1X, this.base+this.height/8,this.height/4,this.height/6)
+            debugText(car1X, car1X, this.base+this.height*2/8, foreground)
+            car2X = random(WIDTH)>>0
+            targetGraphic.rect(car2X, this.base+this.height*5.5/8,this.height/4,this.height/6)
+            debugText(car2X, car2X, this.base+this.height*6.25/8, foreground)
+          }
+        }
       }
-      
+    }
     }
 
 }
@@ -217,23 +249,23 @@ class Sun{
     this.currentWave = []
     
     
-    debugText("Position: " + this.position.x + " " + this.position.y, 20, 0)
-    debugText("Sun Rays/Amp/Freq/RayLength: " + this.numRays + "/" + Math.round(this.amplitude).toString() + "/" + Math.round(this.frequency).toString() +"/" + Math.round(this.rayLength).toString(), 20, 17)
-    debugText("Sun Colors: " + red(this.fillColor) + "/" +  green(this.fillColor) + "/" +  blue(this.fillColor), 20, 34)
+    debugText("Position: " + this.position.x + " " + this.position.y, 20, 0,foreground)
+    debugText("Sun Rays/Amp/Freq/RayLength: " + this.numRays + "/" + Math.round(this.amplitude).toString() + "/" + Math.round(this.frequency).toString() +"/" + Math.round(this.rayLength).toString(), 20, 17, foreground)
+    debugText("Sun Colors: " + red(this.fillColor) + "/" +  green(this.fillColor) + "/" +  blue(this.fillColor), 20, 34,foreground)
     pop()
     
 
   }
 }
 
-function debugText( text, x, y ){
+function debugText( text, x, y, targetGraphic){
   if( !DEBUG ) return
-  push();
-  stroke("#00000050")
-  strokeWeight(4)
-  fill(255)
-  window.text(text, x, y)
-  pop();
+  targetGraphic.push();
+  targetGraphic.stroke("#00000050")
+  targetGraphic.strokeWeight(4)
+  targetGraphic.fill(255)
+  targetGraphic.text(text, x, y)
+  targetGraphic.pop();
 }
 
 
