@@ -36,7 +36,7 @@ function setup() {
   let bMaxHeight = random(HEIGHT/4, HEIGHT/2.7)>>0
   let bMaxWidth = random(bMaxHeight/5, bMaxHeight/4)>>0
   let bBuildingPalette = paletteB
-  let bBase = random(0.67, 0.85)*WIDTH 
+  let bBase = random(0.67, 0.85)*HEIGHT 
 
   buildings = new Buildings(bNumBuildings, bMaxHeight, bMaxWidth, bBuildingPalette, bBase)
   
