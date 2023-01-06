@@ -249,9 +249,9 @@ class Sun{
     this.currentWave = []
     
     
-    debugText("Position: " + this.position.x + " " + this.position.y, 20, 0,foreground)
-    debugText("Sun Rays/Amp/Freq/RayLength: " + this.numRays + "/" + Math.round(this.amplitude).toString() + "/" + Math.round(this.frequency).toString() +"/" + Math.round(this.rayLength).toString(), 20, 17, foreground)
-    debugText("Sun Colors: " + red(this.fillColor) + "/" +  green(this.fillColor) + "/" +  blue(this.fillColor), 20, 34,foreground)
+    debugText("Position: " + this.position.x + " " + this.position.y, 20, 10,foreground)
+    debugText("Sun Rays/Amp/Freq/RayLength: " + this.numRays + "/" + Math.round(this.amplitude).toString() + "/" + Math.round(this.frequency).toString() +"/" + Math.round(this.rayLength).toString(), 20, 27, foreground)
+    debugText("Sun Colors: " + red(this.fillColor) + "/" +  green(this.fillColor) + "/" +  blue(this.fillColor), 20, 44,foreground)
     pop()
     
 
