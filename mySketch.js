@@ -1,4 +1,9 @@
 let paletteB = ["#59656F", "#694A38", "#92BFB1", "#6D1A36", "#02040f"]
+let carPalette = ["Indigo", "DarkSlateBlue", "MediumSlateBlue", "Teal"]  
+let crossPalette = ["#7C2529", "#D6A58B", "#9C7269", "#000000", "#FFFFFF"]
+
+
+
 let sun
 let buildings 
 let road 
@@ -6,9 +11,10 @@ let WIDTH
 let HEIGHT
 let backGroundColor
 let loopCount = 0
-let DEBUG = true
+let DEBUG = false
 let maxLoop = 40
 let foreground
+let DEBUG2  = false
 
 
 function setup() {
@@ -18,6 +24,7 @@ function setup() {
   createCanvas(WIDTH, HEIGHT);
   foreground = createGraphics(WIDTH,HEIGHT)
 
+  //set up sun
   let sPosition = createVector(random(0.2,0.8)*WIDTH>>0,random(0,0.25)*HEIGHT>>0)
   let sDiameter = WIDTH/8*random(0.8,3)
   let sNumRays = random(15,30)>>0
@@ -29,25 +36,32 @@ function setup() {
   let sFillColor = color(200, random(30)>>0, random(170)>>0)
   let sStrokeColor = color(255, random(60)>>0, random(100)>>0)
   
-  
+  //create sun object
   sun = new Sun(sPosition, sDiameter, sNumRays, sAmplitude, sPhase, sFrequency, sRayLength,sRayStrokeWeight, sFillColor, sStrokeColor)
   
+
+  //set up buildings
   let bNumBuildings = random(10,15)>>0
   let bMaxHeight = random(HEIGHT/4, HEIGHT/2.7)>>0
   let bMaxWidth = random(bMaxHeight/5, bMaxHeight/4)>>0
   let bBuildingPalette = paletteB
   let bBase = random(0.67, 0.85)*HEIGHT 
 
+  //create building, no drawing yet
   buildings = new Buildings(bNumBuildings, bMaxHeight, bMaxWidth, bBuildingPalette, bBase)
   
+  //set up road
   let rHeight =(HEIGHT-bBase)*random(0.7,0.9)>>0
   let rColor1 = "darkgray"
   let rColor2 = "yellow"
   let rBase = bBase
   let rCars = 5
 
+  //create road, no drawing
   road = new Road(rHeight, rColor1, rColor2, rBase, rCars)
   
+
+  //set background color, and clear screen
   backGroundColor = color(random(100),random(50), 210)
   background(backGroundColor)
   if (DEBUG){
@@ -58,18 +72,24 @@ function setup() {
     foreground.rect(0,rBase,WIDTH,HEIGHT)
     foreground.pop();
   }else{
+    //plants in non-debug mode
     foreground.fill("darkgreen")
     foreground.rect(0,rBase,WIDTH,HEIGHT)
   }
 }
 
 function draw() {
+  //clear screen
   fill(backGroundColor)
   noStroke()
   background(backGroundColor)
+
+  //draw all elements on foreground graphic.  Building and road animate less frequently than sun.
   sun.draw()
   buildings.draw(10,foreground)
   road.draw(4, foreground)
+
+  //update the foreground elements on the image
   image(foreground,0,0)
   loopCount++
   if (loopCount>=maxLoop) {
@@ -112,12 +132,87 @@ class Buildings{
             /* DEBUG&&circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10) */
             targetGraphic.pop();
           }else{
+            
             // draw shape
             targetGraphic.fill(currentColor)
             currentX= random(WIDTH)>>0
-            targetGraphic.rect(currentX, this.base>>0, random(this.maxWidth/4, this.maxWidth)>>0, -1*random(this.maxHeight/4, this.maxHeight)>>0, this.maxWidth/20>>0)
+            let wid =  random(this.maxWidth/4, this.maxWidth)>>0
+            let height = -1*random(this.maxHeight/4, this.maxHeight)>>0;
+            let slope1 = random()
+            let slope2 = random()
+            let crossColor = random(crossPalette)
+            targetGraphic.rect(currentX, this.base>>0,wid, height, this.maxWidth/20>>0)
+
+
+            //this is where the hashes get drawn, diagonally
+            targetGraphic.push()
+            targetGraphic.translate(currentX, this.base>>0)
+            
+            let x = 0
+            let y = 0
+            let lines = random(7,9)>>0
+            let c = Math.abs(height/lines)
+            targetGraphic.stroke(color(crossColor))
+            targetGraphic.strokeWeight(1)
+
+            //hashes going one direction
+            DEBUG2&&console.log("Drawing lines1. Slope, C" + slope1 + "/" + c)
+            let currentLines = -lines*.5>>0
+            while(currentLines<lines*1.5){
+              if (currentLines<lines&&currentLines>0) {
+                while(x<=wid&&y>=height&&y<=0){
+                  y=x*slope1-c*currentLines>>0
+                  targetGraphic.point(x,y)
+                  if (DEBUG2&&currentLines==0) console.log("Point: " + x + "/" + y)
+                  x++
+                }
+              } else {
+                //hashes starting out of building's height range need different rule
+                while(x<=wid){
+                  y=x*slope1-c*currentLines>>0
+                  if(y>=height&&y<=0) targetGraphic.point(x,y)
+                  if (DEBUG2&&currentLines==0) console.log("Point: " + x + "/" + y)
+                  x++
+                }
+              }
+             
+              currentLines++
+              x =0
+              y = 0
+            }
+            
+            //hashes going a second slope direction
+            DEBUG2&&console.log("Drawing lines2. Slope, C" + slope2 + "/" + c)
+            currentLines = -lines*.5>>0
+            x = 0
+            y = 0
+            while(currentLines<lines*1.5){
+              if (currentLines<lines&&currentLines>0) {
+                while(x<=wid&&y>=height&&y<=0){
+                  y=-x*slope2-c*currentLines>>0
+                  targetGraphic.point(x,y)
+                  if (DEBUG2&&currentLines==0) console.log("Point: " + x + "/" + y)
+                  x++
+                }
+              } else {
+                 //hashes starting out of building's height range need different rule
+                while(x<=wid){
+                  y=-x*slope2-c*currentLines>>0
+                  if(y>=height&&y<=0) targetGraphic.point(x,y)
+                  if (DEBUG2&&currentLines==0) console.log("Point: " + x + "/" + y)
+                  x++
+                }
+              }
+             
+              currentLines++
+              x =0
+              y = 0
+            }
+            targetGraphic.pop()
+
+            //draw tiny circles
             targetGraphic.fill("white")
-            targetGraphic.circle(currentX, this.base-this.maxHeight*random(.65,.7)>>0,10)
+            targetGraphic.circle(currentX+wid/2>>0, this.base-this.maxHeight*random(1.05,1.15)>>0,10)
           }
           
         }
@@ -141,15 +236,20 @@ class Road{
         targetGraphic.stroke(255)
         targetGraphic.strokeWeight(1)
         targetGraphic.noFill()
-        // draw shape
+        // draw road
         targetGraphic.rect(0, this.base>>0, WIDTH, this.height)
         targetGraphic.rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
         targetGraphic.rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
         
-        if (loopCount>maxLoop/5) {
+
+        //draw cars
+        if (loopCount>maxLoop/5) { //delay the car drawings
           let car1X
           let car2X
           // one car on each side of the road. 
+          //these cars could also be replaced with car objects of similar rectangular 
+          //dimensions which we can track through an animation instead of random.  
+
           for(let i=0; i<this.cars/2;i++){
             car1X = random(WIDTH)>>0
             targetGraphic.rect(car1X, this.base+this.height/8,this.height/4,this.height/6)
@@ -162,21 +262,37 @@ class Road{
         }
 
       }else{
-        // draw shape
+        // draw road 
         targetGraphic.fill(this.color1)
         targetGraphic.rect(0, this.base>>0, WIDTH, this.height)
         targetGraphic.fill(this.color2)
         targetGraphic.rect(0, this.base+this.height*0.45>>0, WIDTH, this.height/10>>0)
         targetGraphic.rect(0, this.base+this.height*0.55>>0, WIDTH, this.height/10>>0)
 
-        if (loopCount>maxLoop/5) {
+
+        //draw grass effect
+        if (loopCount>maxLoop*.85){
+          let grassX
+          let grassY
+          for(let i = 0; i<200;i++){
+            grassX = random(0,WIDTH)>>0
+            grassY = random(this.base+this.height, HEIGHT)
+            targetGraphic.fill("yellowgreen")
+            targetGraphic.rect(grassX, grassY, WIDTH/200>>0, HEIGHT/200>>0)
+          }
+        }
+
+        //draw cars
+        if (loopCount>maxLoop/5) { //delay the car drawings
           let car1X
           let car2X
           for(let i=0; i<this.cars/2;i++){
             car1X = random(WIDTH)>>0
+            targetGraphic.fill(random(carPalette))
             targetGraphic.rect(car1X, this.base+this.height/8,this.height/4,this.height/6)
             debugText(car1X, car1X, this.base+this.height*2/8, foreground)
             car2X = random(WIDTH)>>0
+            targetGraphic.fill(random(carPalette))
             targetGraphic.rect(car2X, this.base+this.height*5.5/8,this.height/4,this.height/6)
             debugText(car2X, car2X, this.base+this.height*6.25/8, foreground)
           }
